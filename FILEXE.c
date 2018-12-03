@@ -56,7 +56,7 @@ int main(void)
 			break;
 		case 6:
 			goto end_for;
-		}sleep(3);
+		}if(choix != 3) sleep(3);
 	}end_for:;
 }
 
@@ -89,7 +89,7 @@ void create_file(void)
 {
 	int flags = O_RDONLY | O_CREAT | O_EXCL /*| O_NOATIME Don’t update file last access time*/;
 	//setting mode for creat()scanf
-	int fd, mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH;
+	int fd, mode = S_IRUSR | S_IWUSR /* | S_IRGRP | S_IWGRP | S_IROTH*/;
 	char name[MAXFILENAMELENGTH]; /*setting pathname for creat()*/
 
 	printf("_________________________________________\n\n");
@@ -104,18 +104,18 @@ void create_file(void)
 	printf("_________________________________________\n");
 	umask(0);
 	if ((fd = open(name, flags, mode)) != -1)
-	{ //si le fichier 'name' n'existe pas Créez le fichier
+	{ //si le fichier 'name' n'existe pas Creez le fichier
 		close(fd);
-		printf("\nDone.\nLe fichier %s, a été creé!!\n", name);
+		printf("\nDone.\nLe fichier %s, a ete cree!!\n", name);
 	}
 	else
 	{
 		if (errno == EEXIST)
 		{ //if the file exists
-			fprintf(stderr, "\nRien à faire!\nLe fichier \"%s\", existe déjà, supprimez-le d'abord!!!!\n", name);
+			fprintf(stderr, "\nRien a faire!\nLe fichier \"%s\", existe deja, supprimez-le d'abord!!!!\n", name);
 		}
 		else
-		{ //s'il y a eu une erreur d'accès au fichier $name
+		{ //s'il y a eu une erreur d'acces au fichier $name
 			perror("\nOpen!");
 		}
 	}
@@ -128,7 +128,7 @@ void write_file(void)
 	int fd, flags = O_WRONLY | O_APPEND;
 	char trunc_opt, name[MAXFILENAMELENGTH];
 
-	printf("Entrez le nom du fichier dans lequel on écrira : ");		//Entrer le nom du fichier
+	printf("Entrez le nom du fichier dans lequel on ecrira : ");		//Entrer le nom du fichier
 	if (get_file_name(name, MAXFILENAMELENGTH) <= 0)
 	{
 		printf("Invalid file name!!\n");
@@ -136,7 +136,7 @@ void write_file(void)
 		return;
 	}
 
-	printf("Voulez-vous tronquer le fichier?(o/n): ");	//Demander si vous souhaitez ajouter à ou tronquer le fichier
+	printf("Voulez-vous tronquer le fichier?(o/n): ");	//Demander si vous souhaitez ajouter a ou tronquer le fichier
 	do
 	{
 		get_stdin_string(&trunc_opt, 1);
@@ -166,7 +166,7 @@ void read_file(void)
 	char name[MAXFILENAMELENGTH], buffer[1];
 	printf("_________________________________________\n\n");
 	
-	printf("Entrez le nom du fichier à lire : ");			//Entering the name of the file
+	printf("Entrez le nom du fichier a lire : ");			//Entering the name of the file
 	if (get_file_name(name, MAXFILENAMELENGTH) <= 0)
 	{
 		printf("Nom de fichier non valide!!\n");
@@ -191,6 +191,8 @@ void read_file(void)
 
 	printf("\n_________________________________________\n\n");
 	close(fd);
+	printf("clicker sur Entrer pour continuer!!");
+	while(getchar() != '\n');
 }
 
 void delete_file(void)
@@ -199,7 +201,7 @@ void delete_file(void)
 
 	char name[MAXFILENAMELENGTH];
 
-	printf("Entrez le nom du fichier à supprimer : ");
+	printf("Entrez le nom du fichier a supprimer : ");
 	if (get_file_name(name, MAXFILENAMELENGTH) <= 0)
 	{
 		printf("Nom de fichier non valide!!\n");
@@ -213,7 +215,7 @@ void delete_file(void)
 		return;
 	}
 	else
-		printf("Le fichier '%s', a été supprimé avec succès!\n", name);
+		printf("Le fichier '%s', a ete supprime avec succes!\n", name);
 
 	printf("_________________________________________\n\n");
 }
@@ -256,27 +258,27 @@ void get_text_into_file(int txt_fd){
 		if((bytes_writen = write(txt_fd , &c, 1)) == -1 ){
 			perror("Write : "); return;
 		}else if(bytes_writen != 1){
-			fprintf(stderr, "Rien n'a été écrit!\n");
+			fprintf(stderr, "Rien n'a ete ecrit!\n");
 		}
 	}
 	printf("\n_________________________________________\n\n");
 }
 
-//obtenir une chaîne terminée par '\n'--> supprimer '\n' --> effacer le buffer stdin
+//obtenir une chaîne terminee par '\n'--> supprimer '\n' --> effacer le buffer stdin
 int get_stdin_string(char *s, int size)
 {
-	//obtenir une entrée brute de caractère $size à partir du stdin
+	//obtenir une entree brute de caractere $size a partir du stdin
 	if (fgets(s, size + 1, stdin) == NULL)
-	{ //fgets prend les caractères de taille max terminés par une '\0'
+	{ //fgets prend les caracteres de taille max termines par une '\0'
 		return -1;
 	}
 	int len = strlen(s);
-	if (size == len && s[len - 1] != '\n') //s'il y a encore plus de caractères dans le tampon stdin (détecté en n'ayant pas '\n')
+	if (size == len && s[len - 1] != '\n') //s'il y a encore plus de caracteres dans le tampon stdin (detecte en n'ayant pas '\n')
 		while (getchar() != '\n')
 			; // effacer le tampon stdin
 	else
 		s[len - 1] = '\0';
-	//retourne le nombre de caractères lus
+	//retourne le nombre de caracteres lus
 	return strlen(s);
 }
 
@@ -325,7 +327,7 @@ void cp2(void){
 
     //openning file2 for writeing (Create / erase if it exists)
 	int flags= O_WRONLY | O_CREAT | O_TRUNC; 
-	mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
+	mode_t mode = S_IRUSR | S_IWUSR /*| S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;*/;
 	outfd = open(out_name, flags, mode);
 	if(outfd==-1){
 		perror("Outfiles :");return;
@@ -342,7 +344,7 @@ void cp2(void){
 		perror("out F close");
 
 	/*print status of the task*/
-	printf("Terminé\n");
+	printf("Termine\n");
 }
 
 void cp_append(void){
@@ -359,7 +361,7 @@ void cp_append(void){
 
 	//openning file2 for appending
 	int flags= O_WRONLY | O_CREAT | O_APPEND ;
-	mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
+	mode_t mode = S_IRUSR | S_IWUSR /*| S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH*/;
 	outfd = open(out_name, flags, mode);
 	if(outfd==-1){
 		perror("Outfiles :");return;
@@ -376,13 +378,13 @@ void cp_append(void){
 		perror("out F close");
 	
 	/*print status of the task*/
-	printf("Terminé\n");
+	printf("Termine\n");
 }
 
 void cp3(void){
     char in1_name[MAX_FILE_NAME], in2_name[MAX_FILE_NAME], out_name[MAX_FILE_NAME];
     printf("Nom du premier inFile : " );		get_file_name(in1_name, MAX_FILE_NAME);
-    printf("Nom du deuxième inFile : ");		get_file_name(in2_name, MAX_FILE_NAME);
+    printf("Nom du deuxieme inFile : ");		get_file_name(in2_name, MAX_FILE_NAME);
     printf("Nom du OutFile: ");					get_file_name(out_name, MAX_FILE_NAME);
 	
 	//openning file1 for read only
@@ -398,7 +400,7 @@ void cp3(void){
 
 	//openning file2 for appending
 	int flags= O_WRONLY | O_CREAT | O_TRUNC | O_APPEND ; 
-	mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
+	mode_t mode = S_IRUSR | S_IWUSR /*| S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH*/;
 	if(( outfd = open(out_name, flags, mode) ) == -1){
 		perror("Outfiles :");return;
 	}
@@ -416,7 +418,7 @@ void cp3(void){
 		perror("outfile close");
 
 	/*print status of the task*/
-	printf("Terminé\n");
+	printf("Termine\n");
 }
 
 /*
