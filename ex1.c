@@ -5,7 +5,7 @@
 #include <fcntl.h>  //open
 #include <unistd.h> //access()
 #include <errno.h>  //errno;
-//#include <stdlib.h> //exit()
+#include <stdlib.h> //system()
 
 #define MAXFILENAMELENGTH 255
 #define MAX_FILE_NAME 30
@@ -28,6 +28,7 @@ void cp2(void);
 void cp_append(void);
 void cp3(void);
 void copy_in_to_out(int infd, int outfd);
+void clear_screen(void);
 
 int main(void)
 {
@@ -35,6 +36,7 @@ int main(void)
 	for (;;)
 	{
 		choix = p_menu();
+		clear_screen();
 		switch (choix)
 		{
 		case 1:
@@ -54,9 +56,8 @@ int main(void)
 			break;
 		case 6:
 			goto end_for;
-		}
-	}
-end_for:;
+		}sleep(3);
+	}end_for:;
 }
 
 int p_menu(void)
@@ -64,6 +65,7 @@ int p_menu(void)
 	int choix = 0; char c;
 	do
 	{
+		clear_screen();
 		printf("\n\t===============>MENU<===============\n");
 		printf(" _______________________________________________________\n");
 		printf("|\t\t|\t                  \t\t|\n");
@@ -75,7 +77,7 @@ int p_menu(void)
 		printf("|\t6\t|\tQuitter               \t\t|\n");
 		printf("|_______________________________________________________|\n");
 
-		printf("Entrez votre choix : ");
+		printf("\t\tEntrez votre choix : ");
 		scanf("%d", &choix);
 		//clear input
 		while((c=getchar()) != '\n' && c != EOF ){}
@@ -104,13 +106,13 @@ void create_file(void)
 	if ((fd = open(name, flags, mode)) != -1)
 	{ //si le fichier 'name' n'existe pas Créez le fichier
 		close(fd);
-		printf("\nDone.\nFile %s, created!!\n", name);
+		printf("\nDone.\nLe fichier %s, a été creé!!\n", name);
 	}
 	else
 	{
 		if (errno == EEXIST)
 		{ //if the file exists
-			fprintf(stderr, "\nNothing to do here!\nthe File \"%s\", already exists delete it first!!!!\n", name);
+			fprintf(stderr, "\nRien à faire!\nLe fichier \"%s\", existe déjà, supprimez-le d'abord!!!!\n", name);
 		}
 		else
 		{ //s'il y a eu une erreur d'accès au fichier $name
@@ -279,6 +281,7 @@ int get_stdin_string(char *s, int size)
 }
 
 int menu_cp(void){
+	clear_screen();
     printf("\n\t================>Coping Program<================\n");
     printf(" _______________________________________________________________\n");
     printf("|\t\t|                                            \t|\n");
@@ -288,7 +291,7 @@ int menu_cp(void){
     printf("|_______________________________________________________________|\n");
     int x;char c;
     do{
-        printf("Choix : ");
+        printf("\t\tChoix : ");
         scanf("%d", &x); while((c=getchar()) != '\n' && c != EOF ){}
     }while(x < 1 || x > 3);	return x;
 }
@@ -305,7 +308,7 @@ void CP(){
         case 3:
             cp3();
 			break; 
-    } 
+    }
 }
 
 void cp2(void){
@@ -337,6 +340,9 @@ void cp2(void){
 
 	if(close(outfd)==-1)
 		perror("out F close");
+
+	/*print status of the task*/
+	printf("Terminé\n");
 }
 
 void cp_append(void){
@@ -368,7 +374,9 @@ void cp_append(void){
 
 	if(close(outfd)==-1)
 		perror("out F close");
-
+	
+	/*print status of the task*/
+	printf("Terminé\n");
 }
 
 void cp3(void){
@@ -406,8 +414,15 @@ void cp3(void){
 		perror("intfile 2 close");
 	if(close(outfd)==-1)
 		perror("outfile close");
+
+	/*print status of the task*/
+	printf("Terminé\n");
 }
 
+/*
+** Copy from in (left in file descriptor) 
+** into---> the (right file descriptor)
+*/
 void copy_in_to_out(int infd, int outfd){
     //coping the content of file1 into file2
 	char buf[BUFFER_SIZE];
@@ -426,4 +441,17 @@ void copy_in_to_out(int infd, int outfd){
 			perror("writting error"); return;
 		}
 	}
+}
+
+/*Clear screen depending on if the clearing is happening 
+** on a bash terminal or a MS-DOS command
+*/
+void clear_screen()
+{
+	#if defined(WINDOWS) || defined(__WIN32__) 
+		system("cls");
+	#else
+		// Assuming POSIX
+		system ("clear");
+	#endif
 }
