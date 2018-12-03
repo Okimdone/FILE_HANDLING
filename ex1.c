@@ -5,8 +5,12 @@
 #include <fcntl.h>  //open
 #include <unistd.h> //access()
 #include <errno.h>  //errno;
+#include <stdlib.h> //exit()
 
 #define MAXFILENAMELENGTH 255
+#define MAX_FILE_NAME 30
+#define MAX_FILE_NUMBER 20
+#define BUFFER_SIZE 4096
 
 int p_menu(void);
 //int open_file(int );
@@ -16,6 +20,15 @@ void read_file(void);
 void delete_file(void);
 int get_file_name(char *, int);
 int get_stdin_string(char *, int);
+//cp functions
+/*CP main fontion*/
+void CP();
+/*Menu pour choisir la 'copier' voulu, elle retourne le choit*/
+int menu_cp(void); 
+void cp2(void);
+void cp_append(void);
+void cp3(void);
+void copy_in_to_out(int infd, int outfd);
 
 int main(void)
 {
@@ -38,6 +51,9 @@ int main(void)
 			delete_file();
 			break;
 		case 5:
+			CP();
+			break;
+		case 6:
 			goto end_for;
 		}
 	}
@@ -46,19 +62,25 @@ end_for:;
 
 int p_menu(void)
 {
-	int choix = 0;
+	int choix = 0; char c;
 	do
 	{
-		printf("1 - Create file\n");
-		printf("2 - Write into a file\n");
-		printf("3 - Read from a file\n");
-		printf("4 - Delete a file\n");
-		printf("5 - END\n");
+		printf("\n\t===============>MENU<===============\n");
+		printf(" _______________________________________________________\n");
+		printf("|\t\t|\t                  \t\t|\n");
+		printf("|\t1\t|\tCreate file      \t\t|\n");
+		printf("|\t2\t|\tWrite into a file\t\t|\n");
+		printf("|\t3\t|\tRead from a file \t\t|\n");
+		printf("|\t4\t|\tDelete a file    \t\t|\n");
+		printf("|\t5\t|\tCopyint files    \t\t|\n");
+		printf("|\t6\t|\tQuitter          \t\t|\n");
+		printf("|_______________________________________________________|\n");
 
 		printf("Enter Choice : ");
 		scanf("%d", &choix);
-		getchar();
-	} while (choix < 1 || choix > 5);
+		//clear input
+		while((c=getchar()) != '\n' && c != EOF ){}
+	} while (choix < 1 || choix > 6);
 	return choix;
 }
 
@@ -257,3 +279,155 @@ int get_stdin_string(char *s, int size)
 	return strlen(s);
 }
 
+int menu_cp(void){
+    printf("\n\t===============>Coping Program<===============\n");
+    printf(" _______________________________________________________________\n");
+    printf("|\t\t|\t                                   \t|\n");
+    printf("|\t1\t|\tCopy a file into [path]/filename\t|\n");
+    printf("|\t2\t|\tAppend a file into [path]/filename\t|\n");
+    printf("|\t3\t|\tCopy a file[s] into [path]/filename\t|\n");
+    printf("|_______________________________________________________________|\n");
+    int x;char c;
+    do{
+        printf("Choice : ");
+        scanf("%d", &x); while((c=getchar()) != '\n' && c != EOF ){}
+    }while(x < 1 || x > 3);	return x;
+}
+
+void CP(){
+	int choix = menu_cp();
+    switch(choix){
+        case 1:
+            cp2();
+			break;
+        case 2:
+            cp_append();
+			break;
+        case 3:
+            cp3();
+			break; 
+    } 
+}
+
+void cp2(void){
+    char in_name[MAX_FILE_NAME], out_name[MAX_FILE_NAME];
+    printf("inFile s name : ");		get_file_name(in_name, MAX_FILE_NAME);
+    printf("outFile s name : ");	get_file_name(out_name, MAX_FILE_NAME);
+    
+	//openning file1 for read only
+    int infd, outfd;
+	infd=open(in_name, O_RDONLY);
+	if(infd==-1){
+		perror("inFile :");exit(-1);
+	}
+
+    //openning file2 for writeing (Create / erase if it exists)
+	int flags= O_WRONLY | O_CREAT | O_TRUNC; 
+	mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
+	outfd = open(out_name, flags, mode);
+	if(outfd==-1){
+		perror("Outfiles :");
+		exit(-1);
+	}
+
+	//Coping process
+	copy_in_to_out(infd, outfd);
+
+	//closing files
+	if(close(infd)==-1)
+		perror("in F close");
+
+	if(close(outfd)==-1)
+		perror("out F close");
+}
+
+void cp_append(void){
+    char in_name[MAX_FILE_NAME], out_name[MAX_FILE_NAME];
+    printf("inFile s name : ");		get_file_name(in_name, MAX_FILE_NAME);
+    printf("outFile s name : ");	get_file_name(out_name, MAX_FILE_NAME);
+
+	//openning file1 for read only
+    int infd, outfd;
+	infd=open(in_name, O_RDONLY);
+	if(infd==-1){
+		perror("inFile :");exit(-1);
+	}
+
+	//openning file2 for appending
+	int flags= O_WRONLY | O_CREAT | O_APPEND ;
+	mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
+	outfd = open(out_name, flags, mode);
+	if(outfd==-1){
+		perror("Outfiles :");
+		exit(-1);
+	}
+
+	//Coping process
+	copy_in_to_out(infd, outfd);
+
+	//closing files
+	if(close(infd)==-1)
+		perror("in F close");
+
+	if(close(outfd)==-1)
+		perror("out F close");
+
+}
+
+void cp3(void){
+    char in1_name[MAX_FILE_NAME], in2_name[MAX_FILE_NAME], out_name[MAX_FILE_NAME];
+    printf("First in File s name : ");		get_file_name(in1_name, MAX_FILE_NAME);
+    printf("Second in File s name : ");		get_file_name(in2_name, MAX_FILE_NAME);
+    printf("Out File s name : ");			get_file_name(out_name, MAX_FILE_NAME);
+	
+	//openning file1 for read only
+    int in1fd, in2fd, outfd;
+	if(( in1fd=open(in1_name, O_RDONLY) ) == -1){
+		perror("inFile 1 :");exit(-1);
+	}
+
+	//openning file2 for read only
+	if(( in2fd=open(in2_name, O_RDONLY) ) == -1){
+		perror("inFile 2 :");exit(-1);
+	}
+
+	//openning file2 for appending
+	int flags= O_WRONLY | O_CREAT | O_TRUNC | O_APPEND ; 
+	mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
+	if(( outfd = open(out_name, flags, mode) ) == -1){
+		perror("Outfiles :");
+		exit(-1);
+	}
+
+	//Coping file1 into outfile
+	copy_in_to_out(in1fd, outfd);
+	//Coping file2 into outfile
+	copy_in_to_out(in2fd, outfd);
+
+	if(close(in1fd)==-1)
+		perror("intfile 1 close");
+	if(close(in2fd)==-1)
+		perror("intfile 2 close");
+	if(close(outfd)==-1)
+		perror("outfile close");
+}
+
+void copy_in_to_out(int infd, int outfd){
+    //coping the content of file1 into file2
+	char buf[BUFFER_SIZE];
+	ssize_t rdbytes;						//read bytes
+	while((rdbytes = read(infd, buf, BUFFER_SIZE)) != 0){
+		if(rdbytes == -1){	
+			//if read() was not interrupted
+			if(errno != EAGAIN && errno !=EINTR){ 
+				perror("reading inFile");
+				exit(-1);
+			}
+		}
+		//writing into out file
+		if( write(outfd, buf, strlen(buf)) == -1)
+		{	
+			perror("writting error"); exit(-1);
+		}
+	}
+}
